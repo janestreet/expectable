@@ -106,45 +106,42 @@ let find_key_paths (trees : _ Record_tree.t list) =
   Ordered_trie.depth_first_traversal trie
 ;;
 
-let%test_module "find_key_paths" =
-  (module struct
-    let record_trees sexps = List.map sexps ~f:(Record_tree.parse_sexp ~parse_leaf:Fn.id)
+module%test [@name "find_key_paths"] _ = struct
+  let record_trees sexps = List.map sexps ~f:(Record_tree.parse_sexp ~parse_leaf:Fn.id)
 
-    let%expect_test "find key paths" =
-      let test sexps =
-        print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
-      in
-      test [ [%sexp { a = "foo" }] ];
-      [%expect {| ((a)) |}];
-      test [ [%sexp { a = "foo" }]; [%sexp { a = { x = 1; y = 2 } }] ];
-      [%expect {| ((a) (a x) (a y)) |}];
-      test
-        [ [%sexp { a = "foo" }]; [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] ];
-      [%expect {| ((a) (b) (c) (d)) |}];
-      test
-        [ [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] (* alphabetical *)
-        ; [%sexp { z = "x"; b = "foo"; c = "bar"; d = "baz"; y = "y" }] (* reverse      *)
-        ];
-      [%expect {| ((a) (b) (c) (d) (z) (y)) |}]
-    ;;
+  let%expect_test "find key paths" =
+    let test sexps =
+      print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
+    in
+    test [ [%sexp { a = "foo" }] ];
+    [%expect {| ((a)) |}];
+    test [ [%sexp { a = "foo" }]; [%sexp { a = { x = 1; y = 2 } }] ];
+    [%expect {| ((a) (a x) (a y)) |}];
+    test [ [%sexp { a = "foo" }]; [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] ];
+    [%expect {| ((a) (b) (c) (d)) |}];
+    test
+      [ [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] (* alphabetical *)
+      ; [%sexp { z = "x"; b = "foo"; c = "bar"; d = "baz"; y = "y" }] (* reverse      *)
+      ];
+    [%expect {| ((a) (b) (c) (d) (z) (y)) |}]
+  ;;
 
-    let%expect_test "find key paths preserves order even when an empty list is the first \
-                     encountered"
-      =
-      let test sexps =
-        print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
-      in
-      (* empty lists count *)
-      test [ [%sexp { a = []; b = 1 }] ];
-      [%expect {| ((a) (b)) |}];
-      test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ 1 ]; b = 1 }] ];
-      [%expect {| ((a) (b)) |}];
-      (* empty lists are ignored if there are non-empty children *)
-      test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ { foo = 1 } ]; b = 1 }] ];
-      [%expect {| ((a foo) (b)) |}]
-    ;;
-  end)
-;;
+  let%expect_test "find key paths preserves order even when an empty list is the first \
+                   encountered"
+    =
+    let test sexps =
+      print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
+    in
+    (* empty lists count *)
+    test [ [%sexp { a = []; b = 1 }] ];
+    [%expect {| ((a) (b)) |}];
+    test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ 1 ]; b = 1 }] ];
+    [%expect {| ((a) (b)) |}];
+    (* empty lists are ignored if there are non-empty children *)
+    test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ { foo = 1 } ]; b = 1 }] ];
+    [%expect {| ((a foo) (b)) |}]
+  ;;
+end
 
 type alist = (string * Sexp.t) list [@@deriving of_sexp]
 
