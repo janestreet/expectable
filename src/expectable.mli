@@ -40,7 +40,8 @@ end
    │ baz │ qux │
    └─────┴─────┘ v} *)
 val print
-  :  ?max_depth:int
+  :  ?max_column_width:int
+  -> ?max_depth:int
   -> ?align:[< `left | `right | `center | `numbers ]
   -> ?display:Ascii_table_kernel.Display.t
   -> ?separate_rows:bool
@@ -68,7 +69,8 @@ val print
    │ bottom right │ 0 │ 1.2 │
    └──────────────┴───┴─────┘ v} *)
 val print_alist
-  :  ?max_depth:int
+  :  ?max_column_width:int
+  -> ?max_depth:int
   -> ?align:[< `left | `right | `center | `numbers ]
   -> ?display:Ascii_table_kernel.Display.t
   -> ?separate_rows:bool
@@ -96,7 +98,8 @@ val print_alist
    │ bottom_right │ 0 │ 1.2 │
    └──────────────┴───┴─────┘ v} *)
 val print_record_transposed
-  :  ?max_depth:int
+  :  ?max_column_width:int
+  -> ?max_depth:int
   -> ?align:[< `left | `right | `center | `numbers ]
   -> ?display:Ascii_table_kernel.Display.t
   -> ?separate_rows:bool
@@ -114,7 +117,8 @@ val print_record_transposed
     input and output sexps are records, but it's unnecessary if one or both of them are
     simple values. *)
 val print_cases
-  :  ?max_depth:int
+  :  ?max_column_width:int
+  -> ?max_depth:int
   -> ?align:[< `left | `right | `center | `numbers ]
   -> ?display:Ascii_table_kernel.Display.t
   -> ?separate_rows:bool
@@ -132,7 +136,8 @@ val print_cases
     return the formatted string instead of printing it to stdout. *)
 module Format : sig
   val print
-    :  ?max_depth:int
+    :  ?max_column_width:int
+    -> ?max_depth:int
     -> ?align:[< `left | `right | `center | `numbers ]
     -> ?display:Ascii_table_kernel.Display.t
     -> ?separate_rows:bool
@@ -143,7 +148,8 @@ module Format : sig
     -> string
 
   val print_alist
-    :  ?max_depth:int
+    :  ?max_column_width:int
+    -> ?max_depth:int
     -> ?align:[< `left | `right | `center | `numbers ]
     -> ?display:Ascii_table_kernel.Display.t
     -> ?separate_rows:bool
@@ -155,7 +161,8 @@ module Format : sig
     -> string
 
   val print_record_transposed
-    :  ?max_depth:int
+    :  ?max_column_width:int
+    -> ?max_depth:int
     -> ?align:[< `left | `right | `center | `numbers ]
     -> ?display:Ascii_table_kernel.Display.t
     -> ?separate_rows:bool
@@ -166,7 +173,8 @@ module Format : sig
     -> string
 
   val print_cases
-    :  ?max_depth:int
+    :  ?max_column_width:int
+    -> ?max_depth:int
     -> ?align:[< `left | `right | `center | `numbers ]
     -> ?display:Ascii_table_kernel.Display.t
     -> ?separate_rows:bool
