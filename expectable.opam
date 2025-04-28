@@ -15,7 +15,7 @@ depends: [
   "core"
   "ppx_jane"
   "textutils"
-  "dune"      {>= "3.11.0"}
+  "dune"      {>= "3.17.0"}
 ]
 available: arch != "arm32" & arch != "x86_32"
 synopsis: "A library that makes it easier to print ASCII tables in tests. All you need is a sexp, and Expectable will take care of the rest!"

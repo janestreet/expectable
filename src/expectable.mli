@@ -9,8 +9,7 @@ module Column_display : sig
       - [`auto]: uses a primitive heuristic based on field name length to choose between
         [`dotted] and [`stacked] on a per-column basis
       - [`custom]: override default rendering behavior and return an arbitrary string. It
-        will be called with the path into the sexp for each column.
-  *)
+        will be called with the path into the sexp for each column. *)
   type t =
     [ `auto
     | `dotted
@@ -24,21 +23,18 @@ module Column_display : sig
   val render : t -> string list -> string
 end
 
-(**
-   {[
-     print
-       [ [%sexp { a = "foo"; b = "bar" }]
-       ; [%sexp { a = "baz"; b = "qux" }]
-       ];
-   ]}
+(** {[
+      print [ [%sexp { a = "foo"; b = "bar" }]; [%sexp { a = "baz"; b = "qux" }] ]
+    ]}
 
-   {v
+    {v
    ┌─────┬─────┐
    │ a   │ b   │
    ├─────┼─────┤
    │ foo │ bar │
    │ baz │ qux │
-   └─────┴─────┘ v} *)
+   └─────┴─────┘
+    v} *)
 val print
   :  ?max_column_width:int
   -> ?max_depth:int
@@ -57,9 +53,7 @@ val print
     {[
       print_alist
         [%sexp_of: Point.t]
-        [ "top left", { x = 5.0; y = 6.0 }
-        ; "bottom right", { x = 0.0; y = 1.2 }
-        ]
+        [ "top left", { x = 5.0; y = 6.0 }; "bottom right", { x = 0.0; y = 1.2 } ]
     ]}
     {v
    ┌──────────────┬───┬─────┐
@@ -67,7 +61,8 @@ val print
    ├──────────────┼───┼─────┤
    │ top left     │ 5 │ 6   │
    │ bottom right │ 0 │ 1.2 │
-   └──────────────┴───┴─────┘ v} *)
+   └──────────────┴───┴─────┘
+    v} *)
 val print_alist
   :  ?max_column_width:int
   -> ?max_depth:int
@@ -86,9 +81,7 @@ val print_alist
 
     {[
       print_record_transposed
-        [%sexp { top_left = { x = 5; y = 6 }
-               ; bottom_right = { x = 0; y = 1.2 }
-               }]
+        [%sexp { top_left = { x = 5; y = 6 }; bottom_right = { x = 0; y = 1.2 } }]
     ]}
     {v
    ┌──────────────┬───┬─────┐
@@ -96,7 +89,8 @@ val print_alist
    ├──────────────┼───┼─────┤
    │ top_left     │ 5 │ 6   │
    │ bottom_right │ 0 │ 1.2 │
-   └──────────────┴───┴─────┘ v} *)
+   └──────────────┴───┴─────┘
+    v} *)
 val print_record_transposed
   :  ?max_column_width:int
   -> ?max_depth:int
