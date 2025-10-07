@@ -674,3 +674,17 @@ let%expect_test "print_cases with record input and output" =
     └───┴────┴──┴───┴────┴─────┘
     |}]
 ;;
+
+let%expect_test "named tuples" =
+  (* because this is public-release, we can't acutally put labeled tuples in the test, so
+     we're hardcoding the sexp representation *)
+  print [ [%sexp [ [ "~foo"; 1 ]; [ "~bar"; 2 ] ]] ];
+  [%expect
+    {|
+    ┌──────┬──────┐
+    │ ~foo │ ~bar │
+    ├──────┼──────┤
+    │ 1    │ 2    │
+    └──────┴──────┘
+    |}]
+;;

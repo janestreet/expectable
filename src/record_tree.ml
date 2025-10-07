@@ -2,7 +2,7 @@ open! Core
 include Composition_infix
 
 let is_probably_constructor_name str =
-  (not (String.is_empty str)) && Char.is_uppercase (String.get str 0)
+  if String.is_empty str then false else Char.is_uppercase (String.get str 0)
 ;;
 
 let%expect_test "is_probably_constructor_name" =
@@ -12,17 +12,23 @@ let%expect_test "is_probably_constructor_name" =
   [%test_result: bool] (is_probably_constructor_name "Foo") ~expect:true
 ;;
 
-let is_probably_not_field_name str =
-  String.is_empty str
-  || Char.is_uppercase (String.get str 0)
-  || not (Char.is_alpha (String.get str 0))
+let is_probably_field_name str =
+  if String.is_empty str
+  then false
+  else (
+    match String.get str 0 with
+    | '~' -> true
+    | '_' -> true
+    | char -> Char.is_lowercase char)
 ;;
 
-let%expect_test "is_probably_not_field_name" =
-  [%test_result: bool] (is_probably_not_field_name "") ~expect:true;
-  [%test_result: bool] (is_probably_not_field_name "1") ~expect:true;
-  [%test_result: bool] (is_probably_not_field_name "foo") ~expect:false;
-  [%test_result: bool] (is_probably_not_field_name "Foo") ~expect:true
+let%expect_test "is_probably_field_name" =
+  [%test_result: bool] (is_probably_field_name "") ~expect:false;
+  [%test_result: bool] (is_probably_field_name "1") ~expect:false;
+  [%test_result: bool] (is_probably_field_name "1") ~expect:false;
+  [%test_result: bool] (is_probably_field_name "~foo") ~expect:true;
+  [%test_result: bool] (is_probably_field_name "_foo") ~expect:true;
+  [%test_result: bool] (is_probably_field_name "Foo") ~expect:false
 ;;
 
 type 'leaf t =
@@ -40,7 +46,7 @@ let rec parse_sexp' ?max_depth depth sexp ~parse_leaf =
     (match alist_of_sexp sexp with
      | [] -> non_branch sexp depth ~parse_leaf
      | alist ->
-       if List.exists alist ~f:(fst >> is_probably_not_field_name)
+       if List.exists alist ~f:(fst >> is_probably_field_name >> not)
           || List.contains_dup alist ~compare:(Comparable.lift [%compare: string] ~f:fst)
        then non_branch sexp depth ~parse_leaf
        else

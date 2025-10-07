@@ -106,45 +106,42 @@ let find_key_paths (trees : _ Record_tree.t list) =
   Ordered_trie.depth_first_traversal trie
 ;;
 
-let%test_module "find_key_paths" =
-  (module struct
-    let record_trees sexps = List.map sexps ~f:(Record_tree.parse_sexp ~parse_leaf:Fn.id)
+module%test [@name "find_key_paths"] _ = struct
+  let record_trees sexps = List.map sexps ~f:(Record_tree.parse_sexp ~parse_leaf:Fn.id)
 
-    let%expect_test "find key paths" =
-      let test sexps =
-        print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
-      in
-      test [ [%sexp { a = "foo" }] ];
-      [%expect {| ((a)) |}];
-      test [ [%sexp { a = "foo" }]; [%sexp { a = { x = 1; y = 2 } }] ];
-      [%expect {| ((a) (a x) (a y)) |}];
-      test
-        [ [%sexp { a = "foo" }]; [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] ];
-      [%expect {| ((a) (b) (c) (d)) |}];
-      test
-        [ [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] (* alphabetical *)
-        ; [%sexp { z = "x"; b = "foo"; c = "bar"; d = "baz"; y = "y" }] (* reverse      *)
-        ];
-      [%expect {| ((a) (b) (c) (d) (z) (y)) |}]
-    ;;
+  let%expect_test "find key paths" =
+    let test sexps =
+      print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
+    in
+    test [ [%sexp { a = "foo" }] ];
+    [%expect {| ((a)) |}];
+    test [ [%sexp { a = "foo" }]; [%sexp { a = { x = 1; y = 2 } }] ];
+    [%expect {| ((a) (a x) (a y)) |}];
+    test [ [%sexp { a = "foo" }]; [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] ];
+    [%expect {| ((a) (b) (c) (d)) |}];
+    test
+      [ [%sexp { a = "foo"; b = "bar"; c = "baz"; d = "qux" }] (* alphabetical *)
+      ; [%sexp { z = "x"; b = "foo"; c = "bar"; d = "baz"; y = "y" }] (* reverse      *)
+      ];
+    [%expect {| ((a) (b) (c) (d) (z) (y)) |}]
+  ;;
 
-    let%expect_test "find key paths preserves order even when an empty list is the first \
-                     encountered"
-      =
-      let test sexps =
-        print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
-      in
-      (* empty lists count *)
-      test [ [%sexp { a = []; b = 1 }] ];
-      [%expect {| ((a) (b)) |}];
-      test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ 1 ]; b = 1 }] ];
-      [%expect {| ((a) (b)) |}];
-      (* empty lists are ignored if there are non-empty children *)
-      test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ { foo = 1 } ]; b = 1 }] ];
-      [%expect {| ((a foo) (b)) |}]
-    ;;
-  end)
-;;
+  let%expect_test "find key paths preserves order even when an empty list is the first \
+                   encountered"
+    =
+    let test sexps =
+      print_s [%sexp (find_key_paths (record_trees sexps) : string list list)]
+    in
+    (* empty lists count *)
+    test [ [%sexp { a = []; b = 1 }] ];
+    [%expect {| ((a) (b)) |}];
+    test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ 1 ]; b = 1 }] ];
+    [%expect {| ((a) (b)) |}];
+    (* empty lists are ignored if there are non-empty children *)
+    test [ [%sexp { a = []; b = 1 }]; [%sexp { a = [ { foo = 1 } ]; b = 1 }] ];
+    [%expect {| ((a foo) (b)) |}]
+  ;;
+end
 
 type alist = (string * Sexp.t) list [@@deriving of_sexp]
 
@@ -217,6 +214,7 @@ let vertical_pad string requested_height =
 ;;
 
 let trees_to_string
+  ?max_column_width
   ?align
   ?display
   ?separate_rows
@@ -264,7 +262,7 @@ let trees_to_string
   let columns =
     List.mapi columns ~f:(fun i (_, display) ->
       let name = vertical_pad display header_height in
-      Ascii_table_kernel.Column.create ~align name (fun row ->
+      Ascii_table_kernel.Column.create ?max_width:max_column_width ~align name (fun row ->
         let values = row.(i) in
         let desired_digits_before_decimal = max_digits_before_decimal.(i) in
         let value =
@@ -312,6 +310,7 @@ let parse_trees ?max_depth ?align sexps = List.map sexps ~f:(parse_tree ?align ?
 
 module Format = struct
   let print
+    ?max_column_width
     ?max_depth
     ?align
     ?display
@@ -322,6 +321,7 @@ module Format = struct
     =
     parse_trees ?align ?max_depth
     >> trees_to_string
+         ?max_column_width
          ?align
          ?display
          ?separate_rows
@@ -331,6 +331,7 @@ module Format = struct
   ;;
 
   let print_alist
+    ?max_column_width
     ?max_depth
     ?align
     ?display
@@ -344,6 +345,7 @@ module Format = struct
     List.map alist ~f:(fun (name, t) -> [%sexp { name : string; value = (t : t) }])
     |> parse_trees ?align ?max_depth:(Option.map max_depth ~f:succ)
     |> trees_to_string
+         ?max_column_width
          ?align
          ?display
          ?separate_rows
@@ -354,6 +356,7 @@ module Format = struct
   ;;
 
   let print_record_transposed
+    ?max_column_width
     ?max_depth
     ?align
     ?display
@@ -365,6 +368,7 @@ module Format = struct
     =
     [%of_sexp: (string * Sexp.t) list] sexp
     |> print_alist
+         ?max_column_width
          ?max_depth
          ?align
          ?display
@@ -376,6 +380,7 @@ module Format = struct
   ;;
 
   let print_cases
+    ?max_column_width
     ?max_depth
     ?align
     ?display
@@ -399,6 +404,7 @@ module Format = struct
       |> Sexp.List)
     |> parse_trees ?align ?max_depth:(Option.map max_depth ~f:succ)
     |> trees_to_string
+         ?max_column_width
          ?align
          ~drop_prefix:1
          ?display
@@ -410,6 +416,7 @@ module Format = struct
 end
 
 let print
+  ?max_column_width
   ?max_depth
   ?align
   ?display
@@ -420,6 +427,7 @@ let print
   sexps
   =
   Format.print
+    ?max_column_width
     ?max_depth
     ?align
     ?display
@@ -432,6 +440,7 @@ let print
 ;;
 
 let print_alist
+  ?max_column_width
   ?max_depth
   ?align
   ?display
@@ -443,6 +452,7 @@ let print_alist
   alist
   =
   Format.print_alist
+    ?max_column_width
     ?max_depth
     ?align
     ?display
@@ -456,6 +466,7 @@ let print_alist
 ;;
 
 let print_record_transposed
+  ?max_column_width
   ?max_depth
   ?align
   ?display
@@ -466,6 +477,7 @@ let print_record_transposed
   sexp
   =
   Format.print_record_transposed
+    ?max_column_width
     ?max_depth
     ?align
     ?display
@@ -478,6 +490,7 @@ let print_record_transposed
 ;;
 
 let print_cases
+  ?max_column_width
   ?max_depth
   ?align
   ?display
@@ -492,6 +505,7 @@ let print_cases
   inputs
   =
   Format.print_cases
+    ?max_column_width
     ?max_depth
     ?align
     ?display

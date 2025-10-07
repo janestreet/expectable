@@ -46,43 +46,39 @@ let depth_first_traversal t =
   helper t [] |> List.map ~f:List.rev
 ;;
 
-let%test_module _ =
-  (module struct
-    let show t = print_s [%sexp (depth_first_traversal t : string list list)]
+module%test _ = struct
+  let show t = print_s [%sexp (depth_first_traversal t : string list list)]
 
-    let%expect_test "can insert the empty path" =
-      let t = create () in
-      add t [];
-      show t;
-      [%expect {| (()) |}]
-    ;;
+  let%expect_test "can insert the empty path" =
+    let t = create () in
+    add t [];
+    show t;
+    [%expect {| (()) |}]
+  ;;
 
-    let%expect_test "nodes always sort before their children regardless of insertion \
-                     order"
-      =
-      let t = create () in
-      add t [ "a"; "b" ];
-      add t [ "a"; "c" ];
-      add t [ "a" ];
-      show t;
-      [%expect {| ((a) (a b) (a c)) |}]
-    ;;
+  let%expect_test "nodes always sort before their children regardless of insertion order" =
+    let t = create () in
+    add t [ "a"; "b" ];
+    add t [ "a"; "c" ];
+    add t [ "a" ];
+    show t;
+    [%expect {| ((a) (a b) (a c)) |}]
+  ;;
 
-    let%expect_test "sibling nodes are sorted in insertion order" =
-      let t = create () in
-      add t [ "a"; "z" ];
-      add t [ "a"; "b" ];
-      show t;
-      [%expect {| ((a z) (a b)) |}]
-    ;;
+  let%expect_test "sibling nodes are sorted in insertion order" =
+    let t = create () in
+    add t [ "a"; "z" ];
+    add t [ "a"; "b" ];
+    show t;
+    [%expect {| ((a z) (a b)) |}]
+  ;;
 
-    let%expect_test "traversal order is based on the earliest inserted prefix" =
-      let t = create () in
-      add t [ "a"; "c" ];
-      add t [ "b" ];
-      add t [ "a"; "b" ];
-      show t;
-      [%expect {| ((a c) (a b) (b)) |}]
-    ;;
-  end)
-;;
+  let%expect_test "traversal order is based on the earliest inserted prefix" =
+    let t = create () in
+    add t [ "a"; "c" ];
+    add t [ "b" ];
+    add t [ "a"; "b" ];
+    show t;
+    [%expect {| ((a c) (a b) (b)) |}]
+  ;;
+end
