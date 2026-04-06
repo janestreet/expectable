@@ -128,7 +128,7 @@ val print_cases
 
 (** These are exactly the same as the top-level functions with the same name, but they
     return the formatted string instead of printing it to stdout. *)
-module Format : sig
+module (Format @@ portable) : sig
   val print
     :  ?max_column_width:int
     -> ?max_depth:int
